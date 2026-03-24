@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mercier | Indumentaria de Fútbol Premium</title>
+    <meta name="description" content="Tienda exclusiva de camisetas y buzos de fútbol. Colecciones retro y actuales de la más alta calidad.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Mercier.</div>
+        <ul class="nav-links">
+            <li class="dropdown">
+                <button class="dropbtn">Categorías <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+                <div class="dropdown-content">
+                    <a href="#" onclick="filterCategory('all', event)">Todas las Prendas</a>
+                    <a href="#" onclick="filterCategory('retro', event)">Colección Retro</a>
+                    <a href="#" onclick="filterCategory('selecciones', event)">Selecciones</a>
+                    <a href="#" onclick="filterCategory('novedades', event)">Novedades</a>
+                </div>
+            </li>
+        </ul>
+        <div class="cart-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            <span class="cart-count">0</span>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content">
+            <h1>La historia<br>en tu piel.</h1>
+            <p>Descubrí nuestra colección exclusiva de camisetas legendarias. Calidad premium, pasión inigualable. El fútbol en su máxima expresión.</p>
+            <button class="btn-primary">Explorar Piezas</button>
+        </div>
+        <div class="hero-overlay"></div>
+    </header>
+
+    <main class="container" id="catalogo">
+        <div class="section-title">
+            <h2 id="catalogTitle">Todas las prendas</h2>
+            <div class="line"></div>
+        </div>
+
+        <div class="product-grid" id="productGrid">
+            <!-- Products will be injected by JS -->
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">Mercier.</div>
+            <p>El deporte como arte.</p>
+            <p class="copyright">© 2026 Mercier. Todos los derechos reservados. <span style="margin-left:20px;"><a href="admin.html" style="color:var(--text-secondary); text-decoration:none;">Acceso Admin</a></span></p>
+        </div>
+    </footer>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+    <aside class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2>Tu Carrito</h2>
+            <button class="close-cart" id="closeCart">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <!-- Items will be injected here -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total</span>
+                <span id="cartTotalValue">$0</span>
+            </div>
+            <button class="btn-checkout">Finalizar Compra</button>
+        </div>
+    </aside>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
