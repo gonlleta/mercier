@@ -2,15 +2,18 @@
 const defaultProducts = [];
 
 let products = [];
-const storedProducts = localStorage.getItem('mercier_catalog_v2');
-if (storedProducts) {
-    products = JSON.parse(storedProducts);
-} else {
-    products = defaultProducts;
-    localStorage.setItem('mercier_catalog_v2', JSON.stringify(products));
+let cart = [];
+
+async function fetchProducts() {
+    try {
+        const response = await fetch('/api/products');
+        products = await response.json();
+        renderProducts();
+    } catch (e) {
+        console.error("Error cargando productos:", e);
+    }
 }
 
-let cart = [];
 let currentCategory = 'all';
 
 function renderProducts() {
@@ -19,7 +22,12 @@ function renderProducts() {
     
     const filtered = currentCategory === 'all' 
         ? products 
-        : products.filter(p => p.category === currentCategory);
+        : products.filter(p => {
+            if (Array.isArray(p.category)) {
+                return p.category.includes(currentCategory);
+            }
+            return p.category === currentCategory;
+        });
         
     if (filtered.length === 0) {
         grid.innerHTML = '<p style="color:var(--text-secondary); grid-column:1/-1; text-align:center;">No hay productos en esta categoría.</p>';
@@ -29,7 +37,7 @@ function renderProducts() {
     grid.innerHTML = filtered.map(product => `
         <article class="product-card">
             <div class="image-container">
-                <img src="${product.image}" alt="${product.name} Retro" class="product-image">
+                <img src="${product.images && product.images.length > 0 ? product.images[0] : (product.image || 'assets/arg_retro.png')}" alt="${product.name} Retro" class="product-image">
             </div>
             <div class="product-info">
                 <div class="product-header">
@@ -37,7 +45,7 @@ function renderProducts() {
                     <span class="product-price">$${product.price.toLocaleString('es-AR')}</span>
                 </div>
                 <span class="product-season">${product.season}</span>
-                <button class="add-to-cart" onclick="addToCart(${product.id}, this)">Añadir al Carrito</button>
+                <button class="add-to-cart" onclick="openProductModal(${product.id})">Ver Detalles</button>
             </div>
         </article>
     `).join('');
@@ -66,36 +74,95 @@ window.filterCategory = function(category, event) {
     }
 };
 
-window.addToCart = function(productId, btn) {
+let currentModalProduct = null;
+let currentSelectedSize = null;
+
+window.openProductModal = function(id) {
+    const product = products.find(p => p.id === id);
+    if(!product) return;
+    
+    currentModalProduct = product;
+    currentSelectedSize = null;
+    
+    document.getElementById('modalTitle').textContent = product.name;
+    document.getElementById('modalSeason').textContent = product.season;
+    document.getElementById('modalPrice').textContent = '$' + product.price.toLocaleString('es-AR');
+    
+    const imgs = product.images && product.images.length > 0 ? product.images : [product.image || 'assets/arg_retro.png'];
+    document.getElementById('modalMainImage').src = imgs[0];
+    
+    const thumbsContainer = document.getElementById('modalThumbnails');
+    if (imgs.length > 1) {
+        thumbsContainer.innerHTML = imgs.map(src => `<img src="${src}" onclick="document.getElementById('modalMainImage').src='${src}'" style="width:60px; height:60px; object-fit:cover; border-radius:4px; cursor:pointer; border:1px solid rgba(255,255,255,0.2);">`).join('');
+    } else {
+        thumbsContainer.innerHTML = '';
+    }
+    
+    const sizesContainer = document.getElementById('modalSizes');
+    const stock = product.stock || {S:10, M:10, L:10, XL:10, XXL:10}; 
+    const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
+    
+    sizesContainer.innerHTML = sizes.map(size => {
+        const qty = stock[size] || 0;
+        const disabled = qty <= 0 ? 'disabled' : '';
+        const opc = qty <= 0 ? 'opacity:0.5; cursor:not-allowed;' : 'cursor:pointer;';
+        return `<button onclick="selectSize('${size}')" id="sizeBtn_${size}" ${disabled} style="padding:0.5rem 1rem; background:transparent; border:1px solid rgba(255,255,255,0.3); color:white; border-radius:4px; transition:0.3s; ${opc}">${size}</button>`;
+    }).join('');
+    
+    const addBtn = document.getElementById('modalAddToCartBtn');
+    addBtn.disabled = true;
+    addBtn.textContent = 'Selecciona un talle';
+    addBtn.onclick = () => {
+        if(currentSelectedSize) {
+            addToCartWithVariant(product.id, currentSelectedSize);
+            closeModal();
+            document.getElementById('cartSidebar').classList.add('active');
+            document.getElementById('cartOverlay').classList.add('active');
+        }
+    };
+    
+    document.getElementById('productModalOverlay').style.display = 'block';
+    document.getElementById('productModal').style.display = 'block';
+}
+
+window.selectSize = function(size) {
+    currentSelectedSize = size;
+    ['S','M','L','XL','XXL'].forEach(s => {
+        const btn = document.getElementById('sizeBtn_'+s);
+        if(btn && !btn.disabled) {
+            btn.style.background = s === size ? 'white' : 'transparent';
+            btn.style.color = s === size ? 'black' : 'white';
+        }
+    });
+    
+    const addBtn = document.getElementById('modalAddToCartBtn');
+    addBtn.disabled = false;
+    addBtn.textContent = 'Añadir al Carrito';
+}
+
+window.closeModal = function() {
+    document.getElementById('productModalOverlay').style.display = 'none';
+    document.getElementById('productModal').style.display = 'none';
+}
+
+document.getElementById('closeProductModal')?.addEventListener('click', closeModal);
+document.getElementById('productModalOverlay')?.addEventListener('click', closeModal);
+
+window.addToCartWithVariant = function(productId, size) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
     
-    const existing = cart.find(item => item.id === productId);
+    const existing = cart.find(item => item.id === productId && item.size === size);
     if (existing) {
         existing.quantity += 1;
     } else {
-        cart.push({ ...product, quantity: 1 });
+        cart.push({ ...product, quantity: 1, size });
     }
-    
     updateCartUI();
-    document.getElementById('cartSidebar').classList.add('active');
-    document.getElementById('cartOverlay').classList.add('active');
-    
-    if (btn) {
-        const originalText = btn.textContent;
-        btn.textContent = "Añadido ✓";
-        btn.style.background = "#fff";
-        btn.style.color = "#000";
-        setTimeout(() => {
-            btn.textContent = originalText;
-            btn.style.background = "";
-            btn.style.color = "";
-        }, 2000);
-    }
 };
 
-window.removeFromCart = function(productId) {
-    cart = cart.filter(item => item.id !== productId);
+window.removeFromCart = function(index) {
+    cart.splice(index, 1);
     updateCartUI();
 };
 
@@ -112,22 +179,23 @@ function updateCartUI() {
         return;
     }
     
-    cartItems.innerHTML = cart.map(item => `
+    cartItems.innerHTML = cart.map((item, index) => `
         <div class="cart-item">
-            <img src="${item.image}" alt="${item.name}" class="cart-item-img">
+            <img src="${item.images && item.images.length > 0 ? item.images[0] : (item.image || 'assets/arg_retro.png')}" alt="${item.name}" class="cart-item-img">
             <div class="cart-item-info">
                 <div>
-                    <h4 class="cart-item-title">${item.name}</h4>
+                    <h4 class="cart-item-title" style="margin-bottom:0.2rem;">${item.name}</h4>
+                    <span style="display:block; font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.5rem;">Talle: ${item.size}</span>
                     <span class="cart-item-price">${item.quantity} x $${item.price.toLocaleString('es-AR')}</span>
                 </div>
-                <button class="remove-item" onclick="removeFromCart(${item.id})">Eliminar</button>
+                <button class="remove-item" onclick="removeFromCart(${index})">Eliminar</button>
             </div>
         </div>
     `).join('');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    renderProducts();
+    fetchProducts();
     updateCartUI();
 
     const cartIcon = document.querySelector('.cart-icon');
@@ -178,11 +246,25 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.btn-checkout').addEventListener('click', () => {
         if (cart.length === 0) {
             alert("Tu carrito está vacío. Agrega una de nuestras camisetas primero.");
-        } else {
-            alert("¡Proceso de pago simulado! Has pagado tu carrito exitosamente. Gracias por ser parte de Mercier.");
-            cart = [];
-            updateCartUI();
-            toggleCart();
-        }
+            return;
+        } 
+        
+        let text = "¡Hola! Quiero hacer el siguiente pedido en la tienda:\n\n";
+        cart.forEach(item => {
+            text += `- ${item.quantity}x ${item.name} (Talle ${item.size}) - $${(item.price * item.quantity).toLocaleString('es-AR')}\n`;
+            if (item.publicImageUrl) {
+                text += `  🖼️ Ver modelo: ${item.publicImageUrl}\n`;
+            }
+        });
+        
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        text += `\nTotal: *$${total.toLocaleString('es-AR')}*\n\nAvisame los métodos de pago disponibles.`;
+        
+        const encodedText = encodeURIComponent(text);
+        window.open(`https://wa.me/5491173651853?text=${encodedText}`, '_blank');
+        
+        cart = [];
+        updateCartUI();
+        toggleCart();
     });
 });

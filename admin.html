@@ -37,7 +37,7 @@
         <h2 style="margin-bottom: 2.5rem; font-weight: 300; letter-spacing: 2px;">Acceso Restringido</h2>
         <div class="form-group">
             <label>Contraseña Maestra</label>
-            <input type="password" id="adminPassword" class="form-control" placeholder="La clave es 'admin'">
+            <input type="password" id="adminPassword" class="form-control" placeholder="Ingresa tu clave secreta">
         </div>
         <button class="btn-primary" style="width: 100%; margin-top: 1rem;" onclick="attemptLogin()">Ingresar</button>
         <p style="color:#ff4444; margin-top: 1.5rem; display: none; font-size:0.9rem;" id="loginError">Contraseña incorrecta.</p>
@@ -68,15 +68,34 @@
                     <input type="text" id="newSeason" class="form-control" placeholder="Ej: Temporada 1998">
                 </div>
                 <div class="form-group">
-                    <label>Categoría</label>
-                    <select id="newCategory" class="form-control">
-                        <option value="retro">Colección Retro</option>
-                        <option value="selecciones">Selecciones</option>
-                        <option value="novedades">Novedades</option>
-                    </select>
+                    <label>Categorías</label>
+                    <div id="newCategory" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                        <label style="text-transform:none; font-size: 0.95rem; cursor:pointer;"><input type="checkbox" value="retro" class="category-checkbox" style="margin-right:5px;">Colección Retro</label>
+                        <label style="text-transform:none; font-size: 0.95rem; cursor:pointer;"><input type="checkbox" value="selecciones" class="category-checkbox" style="margin-right:5px;">Selecciones</label>
+                        <label style="text-transform:none; font-size: 0.95rem; cursor:pointer;"><input type="checkbox" value="novedades" class="category-checkbox" style="margin-right:5px;">Novedades</label>
+                    </div>
+                <div class="form-group full-width">
+                    <label>Stock por Talle (Unidades)</label>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <label style="color:var(--text-secondary); font-size:0.9rem;">S: <input type="number" id="stockS" class="form-control" value="0" min="0" style="width:60px; padding:0.5rem;"></label>
+                        <label style="color:var(--text-secondary); font-size:0.9rem;">M: <input type="number" id="stockM" class="form-control" value="0" min="0" style="width:60px; padding:0.5rem;"></label>
+                        <label style="color:var(--text-secondary); font-size:0.9rem;">L: <input type="number" id="stockL" class="form-control" value="0" min="0" style="width:60px; padding:0.5rem;"></label>
+                        <label style="color:var(--text-secondary); font-size:0.9rem;">XL: <input type="number" id="stockXL" class="form-control" value="0" min="0" style="width:60px; padding:0.5rem;"></label>
+                        <label style="color:var(--text-secondary); font-size:0.9rem;">XXL: <input type="number" id="stockXXL" class="form-control" value="0" min="0" style="width:60px; padding:0.5rem;"></label>
+                    </div>
                 </div>
                 <div class="form-group full-width">
-                    <button class="btn-primary" style="width:100%;" onclick="addProduct()">Guardar Producto Público</button>
+                    <label>Imágenes del Producto (Archivos Locales - Alta Calidad)</label>
+                    <input type="file" id="newImage" accept="image/*" class="form-control" multiple onchange="handleImageUpload(event)">
+                    <div id="imagePreviewContainer" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;"></div>
+                </div>
+                <div class="form-group full-width">
+                    <label>Link Público de la Imagen (Para previsualización en WhatsApp)</label>
+                    <input type="url" id="publicImageUrl" class="form-control" placeholder="Ej: https://i.imgur.com/camiseta.jpg">
+                </div>
+                <div class="form-group full-width">
+                    <button id="saveBtn" class="btn-primary" style="width:100%;" onclick="saveProductAction()">Guardar Producto Público</button>
+                    <button id="cancelBtn" class="btn-danger" style="width:100%; display:none; margin-top:10px;" onclick="cancelEdit()">Cancelar Edición</button>
                 </div>
             </div>
         </div>
