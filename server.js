@@ -1,68 +1,88 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
 
 const app = express();
-const PORT = 3000;
-const DATA_FILE = path.join(__dirname, 'data.json');
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); // Permitir base64 grandes
 app.use(express.static(path.join(__dirname))); // Servir la web estática
 
-if (!fs.existsSync(DATA_FILE)) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify([]));
+// MongoDB Connection
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (MONGODB_URI) {
+    mongoose.connect(MONGODB_URI)
+      .then(() => console.log('MongoDB connected successfully'))
+      .catch(err => console.error('MongoDB connection error:', err));
+} else {
+    console.log('No MONGODB_URI provided. Database operations will fail unless tested offline with local mock DB.');
 }
 
-function getProducts() {
+const productSchema = new mongoose.Schema({
+    id: Number
+}, { strict: false, versionKey: false });
+
+const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
+
+app.get('/api/products', async (req, res) => {
     try {
-        const data = fs.readFileSync(DATA_FILE);
-        return JSON.parse(data);
+        // En MongoDB localizamos los productos y los devolvemos.
+        const products = await Product.find().sort({ id: -1 });
+        res.json(products);
     } catch (e) {
-        return [];
-    }
-}
-
-function saveProducts(products) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(products, null, 2));
-}
-
-app.get('/api/products', (req, res) => {
-    res.json(getProducts());
-});
-
-app.post('/api/products', (req, res) => {
-    const products = getProducts();
-    const newProduct = req.body;
-    newProduct.id = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-    products.unshift(newProduct);
-    saveProducts(products);
-    res.status(201).json(newProduct);
-});
-
-app.put('/api/products/:id', (req, res) => {
-    const products = getProducts();
-    const id = parseInt(req.params.id);
-    const index = products.findIndex(p => p.id === id);
-    
-    if (index !== -1) {
-        products[index] = { ...products[index], ...req.body, id };
-        saveProducts(products);
-        res.json(products[index]);
-    } else {
-        res.status(404).json({ error: 'No encontrado' });
+        res.status(500).json({ error: e.message });
     }
 });
 
-app.delete('/api/products/:id', (req, res) => {
-    let products = getProducts();
-    const id = parseInt(req.params.id);
-    products = products.filter(p => p.id !== id);
-    saveProducts(products);
-    res.status(204).send();
+app.post('/api/products', async (req, res) => {
+    try {
+        const productData = req.body;
+        if (!productData.id) {
+            const lastProduct = await Product.findOne().sort({ id: -1 });
+            productData.id = lastProduct && lastProduct.id ? lastProduct.id + 1 : 1;
+        }
+        const newProduct = new Product(productData);
+        await newProduct.save();
+        res.status(201).json(newProduct);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
-app.listen(PORT, () => {
-    console.log(`API y Web corriendo en http://localhost:${PORT}`);
+app.put('/api/products/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const updated = await Product.findOneAndUpdate({ id }, req.body, { new: true });
+        if (updated) {
+            res.json(updated);
+        } else {
+            res.status(404).json({ error: 'No encontrado' });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
+
+app.delete('/api/products/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        await Product.findOneAndDelete({ id });
+        res.status(204).send();
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// En entornos que no sean de producción, o si Vercel no está definido, arrancar el servidor
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`API y Web corriendo en http://localhost:${PORT}`);
+    });
+}
+
+// Exportar Express para módulos serverless de Vercel
+module.exports = app;

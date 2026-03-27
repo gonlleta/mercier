@@ -60,6 +60,29 @@ async function loadProducts() {
     }
 }
 
+window.openNewProductForm = function() {
+    const form = document.getElementById('addFormContainer');
+    if (form.style.display === 'none') {
+        editingProductId = null;
+        document.getElementById('newName').value = '';
+        document.getElementById('newPrice').value = '';
+        document.getElementById('newSeason').value = '';
+        document.getElementById('newImage').value = '';
+        document.getElementById('publicImageUrl').value = '';
+        ['stockS','stockM','stockL','stockXL','stockXXL'].forEach(id => document.getElementById(id).value = 0);
+        document.querySelectorAll('.category-checkbox').forEach(cb => cb.checked = false);
+        currentImagesBase64 = [];
+        renderImagePreviews();
+        
+        document.getElementById('saveBtn').textContent = 'Guardar Producto Público';
+        document.getElementById('cancelBtn').style.display = 'none';
+        
+        form.style.display = 'block';
+    } else {
+        form.style.display = 'none';
+    }
+}
+
 function toggleAddForm() {
     const form = document.getElementById('addFormContainer');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
@@ -198,10 +221,10 @@ function renderAdminList() {
     list.innerHTML = localProducts.map(p => `
         <div class="admin-item">
             <div class="admin-item-info">
-                <strong>${p.name}</strong> 
-                <span>Temp: ${p.season}</span>
-                <span>$${p.price.toLocaleString('es-AR')}</span>
-                <span>[${Array.isArray(p.category) ? p.category.join(', ') : p.category}]</span>
+                <strong>${p.name || 'Sin nombre'}</strong> 
+                <span>Temp: ${p.season || 'N/A'}</span>
+                <span>$${(Number(p.price) || 0).toLocaleString('es-AR')}</span>
+                <span>[${p.category ? (Array.isArray(p.category) ? p.category.join(', ') : p.category) : 'Sin categoría'}]</span>
             </div>
             <div>
                 <button class="btn-primary" style="margin-right:10px; padding:0.8rem 1.5rem;" onclick="initEdit(${p.id})">Editar</button>
