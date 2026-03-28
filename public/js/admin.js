@@ -127,27 +127,31 @@ window.saveProductAction = function() {
         images: imgs // Support for array of images
     };
 
-    if (editingProductId) {
-        fetch(`/api/products/${editingProductId}`, {
+    const saveFetch = editingProductId 
+        ? fetch(`/api/products/${editingProductId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
-        }).then(() => {
-            alert("¡Producto actualizado exitosamente!");
-            cancelEdit();
-            loadProducts();
-        });
-    } else {
-        fetch('/api/products', {
+        })
+        : fetch('/api/products', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
-        }).then(() => {
-            alert("¡Prenda cargada al catálogo interactivo!");
-            cancelEdit();
-            loadProducts();
         });
-    }
+
+    saveFetch.then(async (res) => {
+        if (!res.ok) {
+            let errorMsg = await res.text();
+            try { errorMsg = JSON.parse(errorMsg).error || errorMsg; } catch (e) {}
+            alert("No se pudo guardar. El servidor dice: " + errorMsg);
+            return;
+        }
+        alert(editingProductId ? "¡Producto actualizado exitosamente!" : "¡Prenda cargada al catálogo interactivo!");
+        cancelEdit();
+        loadProducts();
+    }).catch(e => {
+        alert("Error de red o conexión: " + e.message);
+    });
 }
 
 window.cancelEdit = function() {
