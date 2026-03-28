@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); // Permitir base64 grandes
-app.use(express.static(path.join(__dirname, '..'))); // Servir la web estática
+app.use(express.static(path.join(__dirname, '..', 'public'))); // Servir la web estática
 
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI;
