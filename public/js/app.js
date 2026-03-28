@@ -102,12 +102,15 @@ window.openProductModal = function(id) {
     const stock = product.stock || {S:10, M:10, L:10, XL:10, XXL:10}; 
     const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
     
-    sizesContainer.innerHTML = sizes.map(size => {
-        const qty = stock[size] || 0;
-        const disabled = qty <= 0 ? 'disabled' : '';
-        const opc = qty <= 0 ? 'opacity:0.5; cursor:not-allowed;' : 'cursor:pointer;';
-        return `<button onclick="selectSize('${size}')" id="sizeBtn_${size}" ${disabled} style="padding:0.5rem 1rem; background:transparent; border:1px solid rgba(255,255,255,0.3); color:white; border-radius:4px; transition:0.3s; ${opc}">${size}</button>`;
-    }).join('');
+    const availableSizes = sizes.filter(size => (stock[size] || 0) > 0);
+    
+    if (availableSizes.length > 0) {
+        sizesContainer.innerHTML = availableSizes.map(size => {
+            return `<button onclick="selectSize('${size}')" id="sizeBtn_${size}" style="padding:0.5rem 1rem; background:transparent; border:1px solid rgba(255,255,255,0.3); color:white; border-radius:4px; transition:0.3s; cursor:pointer;">${size}</button>`;
+        }).join('');
+    } else {
+        sizesContainer.innerHTML = '<span style="color:#ff4444; font-size:0.9rem;">Producto agotado actualmente.</span>';
+    }
     
     const addBtn = document.getElementById('modalAddToCartBtn');
     addBtn.disabled = true;
