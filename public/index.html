@@ -54,11 +54,24 @@
 
     <footer>
         <div class="footer-content">
-            <div class="footer-brand">Mercier.</div>
+            <div class="footer-brand" onclick="checkAdminAccess()" style="cursor:pointer;" title="© Mercier">Mercier.</div>
             <p>El deporte como arte.</p>
-            <p class="copyright">© 2026 Mercier. Todos los derechos reservados. <span style="margin-left:20px;"><a href="admin.html" style="color:var(--text-secondary); text-decoration:none;">Acceso Admin</a></span></p>
+            <p class="copyright">© 2026 Mercier. Todos los derechos reservados.</p>
         </div>
     </footer>
+
+    <!-- Hidden Admin Edit Modal -->
+    <div class="cart-overlay" id="editModalOverlay" style="z-index: 2000; display:none;"></div>
+    <div id="editModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:400px; background:var(--surface-color); z-index:2001; border-radius:8px; border:1px solid rgba(255,255,255,0.1); padding:2rem; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+        <h3 style="margin-bottom: 1rem; color: #d4af37;">✏️ Editar Producto</h3>
+        <input type="text" id="editName" placeholder="Nombre" style="width:100%; padding:0.8rem; margin-bottom:1rem; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); border-radius:4px;">
+        <input type="number" id="editPrice" placeholder="Precio" style="width:100%; padding:0.8rem; margin-bottom:1rem; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); border-radius:4px;">
+        <input type="text" id="editSeason" placeholder="Temporada" style="width:100%; padding:0.8rem; margin-bottom:1.5rem; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); border-radius:4px;">
+        <div style="display:flex; justify-content:space-between; gap:10px;">
+            <button onclick="savePublicEdit()" class="btn-primary btn-gold" style="flex:1;">Guardar</button>
+            <button onclick="closeEditModal()" class="btn-primary" style="flex:1; background:transparent; border-color:var(--text-secondary); color:var(--text-secondary);">Cancelar</button>
+        </div>
+    </div>
 
     <!-- Cart Sidebar -->
     <div class="cart-overlay" id="cartOverlay"></div>

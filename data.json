@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "name": "Camiseta Argentina Alternativa",
+    "price": 85000,
+    "season": "Mundial 2026",
+    "category": ["selecciones", "novedades"],
+    "publicImageUrl": "",
+    "stock": {
+      "S": 10,
+      "M": 15,
+      "L": 20,
+      "XL": 5,
+      "XXL": 2
+    },
+    "images": ["assets/arg_retro.png"]
+  },
+  {
+    "id": 2,
+    "name": "Camiseta Brasil Clásica",
+    "price": 75000,
+    "season": "Mundial 2026",
+    "category": ["selecciones", "retro"],
+    "publicImageUrl": "",
+    "stock": {
+      "S": 5,
+      "M": 10,
+      "L": 10,
+      "XL": 5,
+      "XXL": 0
+    },
+    "images": ["assets/boca_retro.png"]
+  }
+]

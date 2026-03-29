@@ -4,6 +4,76 @@ const defaultProducts = [];
 let products = [];
 let cart = [];
 
+let isAdminUnlocked = false;
+let editingProdId = null;
+
+window.checkAdminAccess = function() {
+    if(isAdminUnlocked) {
+        isAdminUnlocked = false; 
+        alert("Modo edición desactivado.");
+        renderProducts();
+        return;
+    }
+    const pass = prompt("Acceso Administrador Oculto - Contraseña:");
+    if(pass === "nono3232") {
+        isAdminUnlocked = true;
+        alert("Modo edición activado. Aparecerá el botón Editar en las camisetas.");
+        renderProducts();
+    } else if (pass !== null) {
+        alert("Contraseña incorrecta.");
+    }
+}
+
+window.openEditModal = function(id, event) {
+    if (event) event.stopPropagation();
+    const p = products.find(x => x.id === id);
+    if(!p) return;
+    editingProdId = id;
+    document.getElementById('editName').value = p.name;
+    document.getElementById('editPrice').value = p.price;
+    document.getElementById('editSeason').value = p.season;
+    document.getElementById('editModalOverlay').style.display = 'block';
+    document.getElementById('editModal').style.display = 'block';
+}
+
+window.closeEditModal = function() {
+    document.getElementById('editModalOverlay').style.display = 'none';
+    document.getElementById('editModal').style.display = 'none';
+    editingProdId = null;
+}
+
+window.savePublicEdit = async function() {
+    if(!editingProdId) return;
+    const p = products.find(x => x.id === editingProdId);
+    if(!p) return;
+    
+    const payload = {
+        ...p,
+        name: document.getElementById('editName').value,
+        price: parseInt(document.getElementById('editPrice').value) || p.price,
+        season: document.getElementById('editSeason').value
+    };
+    
+    try {
+        const res = await fetch(`/api/products/${editingProdId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if(res.ok) {
+            closeEditModal();
+            const updated = await res.json();
+            const idx = products.findIndex(x => x.id === editingProdId);
+            if(idx !== -1) products[idx] = updated;
+            renderProducts();
+        } else {
+            alert("Error al guardar en el servidor.");
+        }
+    } catch(e) {
+        alert("Error de conexión al guardar.");
+    }
+}
+
 async function fetchProducts() {
     try {
         const response = await fetch('/api/products');
@@ -38,6 +108,7 @@ function renderProducts() {
         <article class="product-card">
             <div class="image-container">
                 <img src="${product.images && product.images.length > 0 ? product.images[0] : (product.image || 'assets/arg_retro.png')}" alt="${product.name} Retro" class="product-image">
+                ${isAdminUnlocked ? `<button onclick="openEditModal(${product.id}, event)" style="position:absolute; top:10px; right:10px; background:rgba(212,175,55,0.95); color:black; border:none; border-radius:4px; padding:6px 12px; cursor:pointer; font-weight:bold; z-index:10; font-size:0.8rem; box-shadow:0 4px 10px rgba(0,0,0,0.5);">✏️ Editar</button>` : ''}
             </div>
             <div class="product-info">
                 <div class="product-header">
