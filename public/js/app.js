@@ -230,10 +230,11 @@ function renderProducts() {
         return;
     }
     
-    grid.innerHTML = filtered.map(product => `
-        <article class="product-card">
-            <div class="image-container">
+    grid.innerHTML = filtered.map((product, index) => `
+        <article class="product-card stagger-item" style="animation-delay: ${0.2 + (index * 0.1)}s;">
+            <div class="image-container" style="position: relative; cursor: pointer;" onclick="openProductModal(${product.id})">
                 <img src="${product.images && product.images.length > 0 ? product.images[0] : (product.image || 'assets/arg_retro.png')}" alt="${product.name} Retro" class="product-image">
+                <img src="assets/watermark.svg" class="watermark-overlay" alt="Mercier Watermark">
                 ${isAdminUnlocked ? `<button onclick="openEditModal(${product.id}, event)" style="position:absolute; top:10px; right:10px; background:rgba(212,175,55,0.95); color:black; border:none; border-radius:4px; padding:6px 12px; cursor:pointer; font-weight:bold; z-index:10; font-size:0.8rem; box-shadow:0 4px 10px rgba(0,0,0,0.5);">✏️ Editar</button>` : ''}
             </div>
             <div class="product-info">

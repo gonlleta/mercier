@@ -33,10 +33,10 @@
     <header class="hero">
         <div class="hero-overlay-wc"></div>
         <div class="hero-content">
-            <div class="wc-badge">Edición Mundialista</div>
-            <h1>La gloria<br>del mundo.</h1>
-            <p>Vivilo como nunca. Celebrá la pasión de la Copa del Mundo con nuestra colección exclusiva de selecciones. El fútbol en su máxima expresión.</p>
-            <button class="btn-primary btn-gold">Ver Selecciones</button>
+            <div class="wc-badge stagger-item" style="animation-delay: 0.2s;">Edición Mundialista</div>
+            <h1 class="stagger-item" style="animation-delay: 0.4s;">La gloria<br>del mundo.</h1>
+            <p class="stagger-item" style="animation-delay: 0.6s;">Vivilo como nunca. Celebrá la pasión de la Copa del Mundo con nuestra colección exclusiva de selecciones. El fútbol en su máxima expresión.</p>
+            <button class="btn-primary btn-gold stagger-item" style="animation-delay: 0.8s;">Ver Selecciones</button>
         </div>
         <div class="hero-overlay"></div>
     </header>
@@ -62,7 +62,7 @@
 
     <!-- Hidden Admin Edit/Add Modal -->
     <div class="cart-overlay" id="editModalOverlay" style="z-index: 2000; display:none;"></div>
-    <div id="editModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:800px; max-height: 90vh; overflow-y: auto; background:var(--surface-color); z-index:2001; border-radius:8px; border:1px solid rgba(255,255,255,0.1); padding:2rem; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+    <div id="editModal" class="glass-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:800px; max-height: 90vh; overflow-y: auto; z-index:2001; border-radius:8px; padding:2rem; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
             <h3 style="color: #d4af37;" id="adminModalTitle">✏️ Administrar Producto</h3>
             <button onclick="closeEditModal()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
@@ -137,11 +137,14 @@
 
     <!-- Product Detail Modal -->
     <div class="cart-overlay" id="productModalOverlay" style="z-index: 1000; display:none;"></div>
-    <div id="productModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:800px; background:var(--surface-color); z-index:1001; border-radius:8px; border:1px solid rgba(255,255,255,0.1); padding:2rem; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+    <div id="productModal" class="glass-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:800px; z-index:1001; border-radius:8px; padding:2rem; box-shadow:0 10px 40px rgba(0,0,0,0.9);">
         <button id="closeProductModal" style="position:absolute; top:15px; right:20px; background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
         <div style="display:flex; gap:2rem; flex-wrap:wrap;">
             <div style="flex:1; min-width:250px;">
-                <img id="modalMainImage" style="width:100%; border-radius:8px; border:1px solid rgba(255,255,255,0.05); object-fit:cover;" src="">
+                <div style="position:relative; width:100%;">
+                    <img id="modalMainImage" style="width:100%; border-radius:8px; border:1px solid rgba(255,255,255,0.05); object-fit:cover;" src="">
+                    <img src="assets/watermark.svg" class="watermark-overlay" alt="Mercier Watermark">
+                </div>
                 <div id="modalThumbnails" style="display:flex; gap:10px; margin-top:10px; overflow-x:auto;"></div>
             </div>
             <div style="flex:1; min-width:250px; display:flex; flex-direction:column; justify-content:center;">

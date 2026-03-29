@@ -1,0 +1,29 @@
+<svg width="400" height="100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;600&amp;display=swap');
+      .watermark-text {
+        font-family: 'Outfit', sans-serif;
+        font-size: 60px;
+        font-weight: 600;
+        fill: #d4af37; /* Dorado Mercier */
+        opacity: 0.85; /* Semi-transparente */
+        letter-spacing: 6px;
+      }
+      .watermark-shadow {
+        font-family: 'Outfit', sans-serif;
+        font-size: 60px;
+        font-weight: 600;
+        fill: #000000;
+        opacity: 0.5;
+        letter-spacing: 6px;
+      }
+    </style>
+  </defs>
+  
+  <!-- Sombra paralela para que resalte sobre fondos claros o oscuros -->
+  <text x="51%" y="52%" dominant-baseline="middle" text-anchor="middle" class="watermark-shadow">Mercier.</text>
+  
+  <!-- Texto principal en dorado -->
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" class="watermark-text">Mercier.</text>
+</svg>
