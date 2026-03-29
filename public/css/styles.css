@@ -555,3 +555,11 @@ footer p {
     color: var(--text-primary);
     padding-left: 25px;
 }
+
+/* Admin Form Styles */
+.form-group { margin-bottom: 1.5rem; text-align: left; }
+.form-group label { display: block; margin-bottom: 0.8rem; color: var(--text-secondary); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; }
+.form-control { width: 100%; padding: 1rem; background: var(--bg-color); border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary); border-radius: 4px; font-family: 'Outfit'; font-size: 1rem; }
+.form-control:focus { outline: none; border-color: rgba(255,255,255,0.3); }
+.add-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.add-form-grid .full-width { grid-column: 1 / -1; }

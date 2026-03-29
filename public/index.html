@@ -60,16 +60,59 @@
         </div>
     </footer>
 
-    <!-- Hidden Admin Edit Modal -->
+    <!-- Hidden Admin Edit/Add Modal -->
     <div class="cart-overlay" id="editModalOverlay" style="z-index: 2000; display:none;"></div>
-    <div id="editModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:400px; background:var(--surface-color); z-index:2001; border-radius:8px; border:1px solid rgba(255,255,255,0.1); padding:2rem; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
-        <h3 style="margin-bottom: 1rem; color: #d4af37;">✏️ Editar Producto</h3>
-        <input type="text" id="editName" placeholder="Nombre" style="width:100%; padding:0.8rem; margin-bottom:1rem; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); border-radius:4px;">
-        <input type="number" id="editPrice" placeholder="Precio" style="width:100%; padding:0.8rem; margin-bottom:1rem; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); border-radius:4px;">
-        <input type="text" id="editSeason" placeholder="Temporada" style="width:100%; padding:0.8rem; margin-bottom:1.5rem; background:rgba(255,255,255,0.05); color:white; border:1px solid rgba(255,255,255,0.1); border-radius:4px;">
-        <div style="display:flex; justify-content:space-between; gap:10px;">
-            <button onclick="savePublicEdit()" class="btn-primary btn-gold" style="flex:1;">Guardar</button>
-            <button onclick="closeEditModal()" class="btn-primary" style="flex:1; background:transparent; border-color:var(--text-secondary); color:var(--text-secondary);">Cancelar</button>
+    <div id="editModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:800px; max-height: 90vh; overflow-y: auto; background:var(--surface-color); z-index:2001; border-radius:8px; border:1px solid rgba(255,255,255,0.1); padding:2rem; box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
+            <h3 style="color: #d4af37;" id="adminModalTitle">✏️ Administrar Producto</h3>
+            <button onclick="closeEditModal()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        
+        <div class="add-form-grid">
+            <div class="form-group">
+                <label>Nombre de la Prenda</label>
+                <input type="text" id="editName" class="form-control" placeholder="Ej: Argentina Alternativa">
+            </div>
+            <div class="form-group">
+                <label>Precio (AR$)</label>
+                <input type="number" id="editPrice" class="form-control" placeholder="Ej: 85000">
+            </div>
+            <div class="form-group">
+                <label>Temporada / Año</label>
+                <input type="text" id="editSeason" class="form-control" placeholder="Ej: Mundial 2026">
+            </div>
+            <div class="form-group">
+                <label>Categorías</label>
+                <div id="editCategory" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                    <label style="text-transform:none; font-size: 0.95rem; cursor:pointer;"><input type="checkbox" value="retro" class="category-checkbox" style="margin-right:5px;">Colección Retro</label>
+                    <label style="text-transform:none; font-size: 0.95rem; cursor:pointer;"><input type="checkbox" value="selecciones" class="category-checkbox" style="margin-right:5px;">Selecciones</label>
+                    <label style="text-transform:none; font-size: 0.95rem; cursor:pointer;"><input type="checkbox" value="novedades" class="category-checkbox" style="margin-right:5px;">Novedades</label>
+                </div>
+            </div>
+            <div class="form-group full-width">
+                <label>Stock por Talle (Unidades)</label>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <label style="color:var(--text-secondary); font-size:0.9rem;">S: <input type="number" id="stockS" class="form-control" value="0" min="0" style="width:70px; padding:0.5rem;"></label>
+                    <label style="color:var(--text-secondary); font-size:0.9rem;">M: <input type="number" id="stockM" class="form-control" value="0" min="0" style="width:70px; padding:0.5rem;"></label>
+                    <label style="color:var(--text-secondary); font-size:0.9rem;">L: <input type="number" id="stockL" class="form-control" value="0" min="0" style="width:70px; padding:0.5rem;"></label>
+                    <label style="color:var(--text-secondary); font-size:0.9rem;">XL: <input type="number" id="stockXL" class="form-control" value="0" min="0" style="width:70px; padding:0.5rem;"></label>
+                    <label style="color:var(--text-secondary); font-size:0.9rem;">XXL: <input type="number" id="stockXXL" class="form-control" value="0" min="0" style="width:70px; padding:0.5rem;"></label>
+                </div>
+            </div>
+            <div class="form-group full-width">
+                <label>Imágenes del Producto (Archivos Locales)</label>
+                <input type="file" id="editImage" accept="image/*" class="form-control" multiple onchange="handleImageUpload(event)">
+                <div id="imagePreviewContainer" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;"></div>
+            </div>
+            <div class="form-group full-width">
+                <label>Link Público de la Imagen (Opcional)</label>
+                <input type="url" id="publicImageUrl" class="form-control" placeholder="Ej: https://i.imgur.com/camiseta.jpg">
+            </div>
+            <div class="form-group full-width" style="display:flex; gap:10px; margin-top: 1rem;">
+                <button onclick="savePublicEdit()" class="btn-primary btn-gold" style="flex:2;">Guardar Producto</button>
+                <button onclick="deletePublicProduct()" id="deleteBtn" class="btn-primary" style="flex:1; background:rgba(255, 68, 68, 0.1); color: #ff4444; border-color: rgba(255, 68, 68, 0.3);">Eliminar</button>
+                <button onclick="closeEditModal()" class="btn-primary" style="flex:1; background:transparent; border-color:var(--text-secondary); color:var(--text-secondary);">Cancelar</button>
+            </div>
         </div>
     </div>
 

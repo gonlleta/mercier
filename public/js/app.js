@@ -6,6 +6,7 @@ let cart = [];
 
 let isAdminUnlocked = false;
 let editingProdId = null;
+let currentImagesBase64 = [];
 
 window.checkAdminAccess = function() {
     if(isAdminUnlocked) {
@@ -17,23 +18,101 @@ window.checkAdminAccess = function() {
     const pass = prompt("Acceso Administrador Oculto - Contraseña:");
     if(pass === "nono3232") {
         isAdminUnlocked = true;
-        alert("Modo edición activado. Aparecerá el botón Editar en las camisetas.");
+        alert("Modo administrador completo activado.");
         renderProducts();
     } else if (pass !== null) {
         alert("Contraseña incorrecta.");
     }
 }
 
-window.openEditModal = function(id, event) {
+window.handleImageUpload = async function(event) {
+    const files = Array.from(event.target.files);
+    for (const file of files) {
+        const base64 = await readFileAsBase64(file);
+        currentImagesBase64.push(base64);
+    }
+    renderImagePreviews();
+}
+
+function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = e => reject(e);
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderImagePreviews() {
+    const container = document.getElementById('imagePreviewContainer');
+    if(!container) return;
+    container.innerHTML = currentImagesBase64.map((src, i) => `
+        <div style="position:relative; display:inline-block;">
+            <img src="${src}" style="max-width:80px; max-height:80px; object-fit:cover; border-radius:4px; border:1px solid rgba(255,255,255,0.1);">
+            <button onclick="removeImage(event, ${i})" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer; font-size:10px; display:flex; align-items:center; justify-content:center;">X</button>
+        </div>
+    `).join('');
+}
+
+window.removeImage = function(event, index) {
+    if (event) event.preventDefault();
+    currentImagesBase64.splice(index, 1);
+    renderImagePreviews();
+}
+
+window.openEditModal = function(id = null, event = null) {
     if (event) event.stopPropagation();
-    const p = products.find(x => x.id === id);
-    if(!p) return;
-    editingProdId = id;
-    document.getElementById('editName').value = p.name;
-    document.getElementById('editPrice').value = p.price;
-    document.getElementById('editSeason').value = p.season;
+    
     document.getElementById('editModalOverlay').style.display = 'block';
     document.getElementById('editModal').style.display = 'block';
+    
+    editingProdId = id;
+    
+    // Reset Form
+    document.getElementById('editName').value = '';
+    document.getElementById('editPrice').value = '';
+    document.getElementById('editSeason').value = '';
+    document.getElementById('publicImageUrl').value = '';
+    document.getElementById('editImage').value = '';
+    ['stockS','stockM','stockL','stockXL','stockXXL'].forEach(s => document.getElementById(s).value = 0);
+    document.querySelectorAll('.category-checkbox').forEach(cb => cb.checked = false);
+    currentImagesBase64 = [];
+    renderImagePreviews();
+    
+    const titleEl = document.getElementById('adminModalTitle');
+    const delBtn = document.getElementById('deleteBtn');
+    
+    if (id) {
+        // Edit Mode
+        const p = products.find(x => x.id === id);
+        if(!p) return;
+        
+        titleEl.innerHTML = '✏️ Editar Producto';
+        delBtn.style.display = 'block';
+        
+        document.getElementById('editName').value = p.name;
+        document.getElementById('editPrice').value = p.price;
+        document.getElementById('editSeason').value = p.season;
+        document.getElementById('publicImageUrl').value = p.publicImageUrl || '';
+        
+        document.getElementById('stockS').value = p.stock?.S || 0;
+        document.getElementById('stockM').value = p.stock?.M || 0;
+        document.getElementById('stockL').value = p.stock?.L || 0;
+        document.getElementById('stockXL').value = p.stock?.XL || 0;
+        document.getElementById('stockXXL').value = p.stock?.XXL || 0;
+        
+        document.querySelectorAll('.category-checkbox').forEach(cb => {
+            cb.checked = Array.isArray(p.category) ? p.category.includes(cb.value) : p.category === cb.value;
+        });
+
+        currentImagesBase64 = p.images ? [...p.images] : (p.image ? [p.image] : []);
+        renderImagePreviews();
+    } else {
+        // Add Mode
+        titleEl.innerHTML = '✨ Añadir Nueva Prenda';
+        delBtn.style.display = 'none';
+        document.querySelector('.category-checkbox[value="novedades"]').checked = true;
+    }
 }
 
 window.closeEditModal = function() {
@@ -42,30 +121,61 @@ window.closeEditModal = function() {
     editingProdId = null;
 }
 
-window.savePublicEdit = async function() {
+window.deletePublicProduct = async function() {
     if(!editingProdId) return;
-    const p = products.find(x => x.id === editingProdId);
-    if(!p) return;
+    if(confirm("¿Estás seguro de que deseas eliminar este producto permanentemente?")) {
+        await fetch(`/api/products/${editingProdId}`, { method: 'DELETE' });
+        closeEditModal();
+        fetchProducts(); // Refresh
+    }
+}
+
+window.savePublicEdit = async function() {
+    const name = document.getElementById('editName').value;
+    const price = parseInt(document.getElementById('editPrice').value);
+    const season = document.getElementById('editSeason').value;
+    const publicImageUrl = document.getElementById('publicImageUrl').value.trim();
     
-    const payload = {
-        ...p,
-        name: document.getElementById('editName').value,
-        price: parseInt(document.getElementById('editPrice').value) || p.price,
-        season: document.getElementById('editSeason').value
+    const categoryCheckboxes = document.querySelectorAll('.category-checkbox:checked');
+    const category = Array.from(categoryCheckboxes).map(cb => cb.value);
+
+    if (!name || isNaN(price) || !season || category.length === 0) {
+        alert("Por favor completa los campos principales y selecciona al menos una categoría.");
+        return;
+    }
+
+    let imgs = currentImagesBase64.length > 0 ? [...currentImagesBase64] : [];
+    if (imgs.length === 0) imgs.push("assets/arg_retro.png");
+
+    let payload = {
+        name,
+        price,
+        season,
+        category,
+        publicImageUrl,
+        stock: {
+            S: parseInt(document.getElementById('stockS').value) || 0,
+            M: parseInt(document.getElementById('stockM').value) || 0,
+            L: parseInt(document.getElementById('stockL').value) || 0,
+            XL: parseInt(document.getElementById('stockXL').value) || 0,
+            XXL: parseInt(document.getElementById('stockXXL').value) || 0
+        },
+        images: imgs
     };
     
+    const url = editingProdId ? `/api/products/${editingProdId}` : '/api/products';
+    const method = editingProdId ? 'PUT' : 'POST';
+    
     try {
-        const res = await fetch(`/api/products/${editingProdId}`, {
-            method: 'PUT',
+        const res = await fetch(url, {
+            method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
         if(res.ok) {
             closeEditModal();
-            const updated = await res.json();
-            const idx = products.findIndex(x => x.id === editingProdId);
-            if(idx !== -1) products[idx] = updated;
-            renderProducts();
+            fetchProducts();
+            alert(editingProdId ? "¡Producto actualizado exitosamente!" : "¡Nueva prenda cargada al catálogo!");
         } else {
             alert("Error al guardar en el servidor.");
         }
@@ -89,6 +199,22 @@ let currentCategory = 'all';
 function renderProducts() {
     const grid = document.getElementById('productGrid');
     if (!grid) return;
+    
+    const titleContainer = document.querySelector('.section-title');
+    if (titleContainer) {
+        let addBtn = document.getElementById('addPublicBtn');
+        if (isAdminUnlocked && !addBtn) {
+            addBtn = document.createElement('button');
+            addBtn.id = 'addPublicBtn';
+            addBtn.className = 'btn-primary btn-gold';
+            addBtn.innerHTML = '+ Nueva Camiseta';
+            addBtn.style.padding = '0.5rem 1rem';
+            addBtn.onclick = () => openEditModal(null, null);
+            titleContainer.appendChild(addBtn);
+        } else if (!isAdminUnlocked && addBtn) {
+            addBtn.remove();
+        }
+    }
     
     const filtered = currentCategory === 'all' 
         ? products 
