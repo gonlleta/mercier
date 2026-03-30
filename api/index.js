@@ -48,7 +48,7 @@ app.use('/api', async (req, res, next) => {
         next();
     } catch (e) {
         console.error('Error in DB Connect Middleware:', e);
-        res.status(500).json({ error: 'Falla al conectar a la base de datos (Serverless Timeout). Revisa MONGODB_URI o IP.' });
+        res.status(500).json({ error: 'DB Error: ' + e.message });
     }
 });
 
