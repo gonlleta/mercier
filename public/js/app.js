@@ -28,17 +28,31 @@ window.checkAdminAccess = function() {
 window.handleImageUpload = async function(event) {
     const files = Array.from(event.target.files);
     for (const file of files) {
-        const base64 = await readFileAsBase64(file);
+        const base64 = await resizeAndCompressImage(file, 800, 800, 0.7);
         currentImagesBase64.push(base64);
     }
     renderImagePreviews();
 }
 
-function readFileAsBase64(file) {
+function resizeAndCompressImage(file, maxWidth, maxHeight, quality) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = e => resolve(e.target.result);
-        reader.onerror = e => reject(e);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                let w = img.width, h = img.height;
+                if (w > h && w > maxWidth) { h = Math.round(h * maxWidth / w); w = maxWidth; }
+                else if (h > maxHeight) { w = Math.round(w * maxHeight / h); h = maxHeight; }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
         reader.readAsDataURL(file);
     });
 }
